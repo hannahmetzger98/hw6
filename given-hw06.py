@@ -148,11 +148,18 @@ class OneNNClassifier(BaseEstimator, ClassifierMixin):
         return self
     
     def predict(self, testInput):
-        if isinstance(testInput, pd.core.series.Series):
+         if isinstance(testInput, pd.core.series.Series):
             # testInput is a Series, so predict for just this one row
-            return findNearestHOF(testInput, self)
-        else:
-            return testInput.apply(lambda row: findNearestHOF(testInput,row), axis =1)
+             s = self.inputsDF.apply(lambda row: findNearestHOF(self.inputsDF,testInput), axis =1)
+             minID = findNearestHOF(self.inputsDF,testInput)
+             s2 = s.map(lambda nearestInputIndx:  self.outputSeries.loc[nearestInputIndx])
+             return s2.loc[minID]
+            #return s.map(lambda nearestTrainIndx: trainOutputSeries.loc[nearestTrainIndx])
+         else:
+            s = testInput.apply(lambda row: findNearestHOF(self.inputsDF,row), axis =1)
+            s2 = s.map(lambda nearestInputIndx:  self.outputSeries.loc[nearestInputIndx])
+            return s2
+        
 
 
 
@@ -182,7 +189,7 @@ def compareManualAndBuiltIn(k=10):
 
 
 
-
+testTheClass()
 
 
 
