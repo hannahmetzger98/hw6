@@ -16,7 +16,7 @@ def readData(numRows = None):
     outputCol = 'Class'
     colNames = [outputCol] + inputCols  # concatenate two lists into one
     wineDF = pd.read_csv("data/wine.data", header=None, names=colNames, nrows = numRows)
-    
+    wineDF=wineDF.sample(frac=1, random_state=99).reset_index(drop=True)
     return wineDF, inputCols, outputCol
 
 
@@ -48,6 +48,7 @@ def kFoldCVManual(k, inputDF, outputSeries, testFunc):
         testOutputSeries = outputSeries.loc[start:upToNotIncluding-1]
         avg = avg + testFunc(trainInputDF, trainOutputSeries, testInputDF, testOutputSeries)
     return(avg/k)
+    
    
 def findNearestHOF(df, testRow):
     s = df.apply(lambda row: scipy.spatial.distance.euclidean(row.loc[:], testRow), axis = 1)
@@ -137,7 +138,7 @@ def testTheClass():
     print("DF:", alg.predict(testInputDF), sep='\n')
 
 class OneNNClassifier(BaseEstimator, ClassifierMixin):
-    def _init_(self):
+    def __init__(self):
         self.inputsDF = None
         self.outputSeries = None
         self.scorer = make_scorer(accuracyOfActualVsPredicted, greater_is_better=True) 
@@ -187,12 +188,11 @@ def compareManualAndBuiltIn(k=10):
     print("Manual:", results)
 
 
-
-
-testTheClass()
-
-
-
+def kFoldCVBuiltIn(k, inputDF, outputSeries):
+    alg = OneNNClassifier()
+    cvScores = model_selection.cross_val_score(alg, inputDF, outputSeries, cv=k, scoring = alg.scorer)
+    return cvScores.mean()
+    
 
 
 # --------------------------------------------------------------------------------------
